@@ -28,11 +28,11 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore
-        run: dotnet restore src/Readarr.sln -p:NoWarn="NU1902;NETSDK1138"
+        run: dotnet restore src/Readarr.sln "/p:NoWarn=NU1902%3BNETSDK1138"
         working-directory: ${{ github.workspace }}
 
       - name: Build
-        run: dotnet msbuild src/Readarr.sln -restore -p:Configuration=Release -p:Platform=Posix -p:TreatWarningsAsErrors=false -p:NoWarn="NETSDK1138;NU1902" -t:PublishAllRids
+        run: dotnet msbuild src/Readarr.sln -restore -p:Configuration=Release -p:Platform=Posix -p:TreatWarningsAsErrors=false -p:NoWarn="NU1902" -t:PublishAllRids
         working-directory: ${{ github.workspace }}
 
       - name: Package Backend
