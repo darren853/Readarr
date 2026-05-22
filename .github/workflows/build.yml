@@ -1,0 +1,114 @@
+name: Build and Package
+
+on:
+  push:
+    branches:
+      - mobozed-prowlarr-fix
+  pull_request:
+    branches:
+      - mobozed-prowlarr-fix
+
+env:
+  DOTNET_VERSION: '6.0.427'
+  NODE_VERSION: '20'
+
+jobs:
+  build-backend:
+    name: Build Backend (.NET)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore src/Readarr.sln "/p:NoWarn=NU1902%3BNETSDK1138"
+        working-directory: ${{ github.workspace }}
+
+      - name: Build
+        run: dotnet msbuild src/Readarr.sln -restore -p:Configuration=Release -p:Platform=Posix -p:TreatWarningsAsErrors=false -p:NoWarn="NU1902" -t:PublishAllRids
+        working-directory: ${{ github.workspace }}
+
+      - name: Package Backend
+        run: |
+          mkdir -p _artifacts/linux-x64/net6.0/Readarr
+          cp -r _output/net6.0/linux-x64/publish/* _artifacts/linux-x64/net6.0/Readarr/ || true
+        working-directory: ${{ github.workspace }}
+
+      - name: Upload backend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: readarr-backend
+          path: _artifacts/linux-x64/net6.0/Readarr
+          retention-days: 3
+
+  build-frontend:
+    name: Build Frontend (Node/Yarn)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: yarn
+          cache-dependency-path: yarn.lock
+
+      - name: Install deps
+        run: yarn install --frozen-lockfile --network-timeout 120000
+        working-directory: ${{ github.workspace }}
+
+      - name: Build UI (webpack)
+        run: yarn run build --env production
+        working-directory: ${{ github.workspace }}
+
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: readarr-ui
+          path: _output/UI
+          retention-days: 3
+
+  package:
+    name: Package Linux (linux-x64)
+    runs-on: ubuntu-latest
+    needs: [build-backend, build-frontend]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Download backend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: readarr-backend
+          path: _artifacts/linux-x64/net6.0/Readarr
+
+      - name: Download frontend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: readarr-ui
+          path: _artifacts/linux-x64/net6.0/Readarr/UI
+
+      - name: Create package info
+        run: |
+          echo "Powered by MoBoZed" > _artifacts/linux-x64/net6.0/Readarr/package_info
+          echo "Branch=mobozed-prowlarr-fix" >> _artifacts/linux-x64/net6.0/Readarr/package_info
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: readarr-linux-x64-mobozed
+          path: _artifacts/linux-x64/net6.0/Readarr
+          retention-days: 5
