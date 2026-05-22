@@ -101,6 +101,10 @@ class About extends Component {
             }
           />
         </DescriptionList>
+
+        <div className={styles.mobozedBanner}>
+          Powered by <strong>MoBoZed</strong> — Modified Book Manager
+        </div>
       </FieldSet>
     );
   }

@@ -41,7 +41,22 @@ namespace NzbDrone.Core.Indexers.Newznab
         {
             var capabilities = new NewznabCapabilities();
 
-            var url = string.Format("{0}{1}?t=caps", indexerSettings.BaseUrl.TrimEnd('/'), indexerSettings.ApiPath.TrimEnd('/'));
+            var baseUrl = indexerSettings.BaseUrl.TrimEnd('/');
+            var apiPath = indexerSettings.ApiPath.TrimEnd('/');
+
+            // If BaseUrl already ends with ApiPath (i.e. user provided the full path in BaseUrl,
+            // as with Prowlarr aggregate/indexer URLs), don't append ApiPath again.
+            // This allows URLs like http://192.168.0.2:9696/api/v1/indexer/4/newznab to work
+            // without Readarr blindly appending /api a second time and breaking the route.
+            string url;
+            if (baseUrl.EndsWith(apiPath, StringComparison.OrdinalIgnoreCase))
+            {
+                url = $"{baseUrl}?t=caps";
+            }
+            else
+            {
+                url = $"{baseUrl}{apiPath}?t=caps";
+            }
 
             if (indexerSettings.ApiKey.IsNotNullOrWhiteSpace())
             {

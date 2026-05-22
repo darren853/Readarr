@@ -3,3 +3,18 @@
 
   margin-bottom: 10px;
 }
+
+.mobozedBanner {
+  margin-top: 20px;
+  padding: 10px 14px;
+  border-radius: 4px;
+  background-color: var(--secondaryBackgroundColor);
+  color: var(--textColor);
+  font-size: 13px;
+  text-align: center;
+  border: 1px solid var(--borderColor);
+}
+
+.mobozedBanner strong {
+  color: #7dd3fc; /* accent colour to stand out */
+}
