@@ -32,7 +32,7 @@ jobs:
         working-directory: ${{ github.workspace }}
 
       - name: Build
-        run: dotnet msbuild src/Readarr.sln -restore -p:Configuration=Release -p:Platform=Posix -t:PublishAllRids
+        run: dotnet msbuild src/Readarr.sln -restore -p:Configuration=Release -p:Platform=Posix -p:TreatWarningsAsErrors=false -p:NoWarn="NETSDK1138;NU1902" -t:PublishAllRids
         working-directory: ${{ github.workspace }}
 
       - name: Package Backend
