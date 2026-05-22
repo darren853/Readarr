@@ -28,7 +28,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore
-        run: dotnet restore src/Readarr.sln
+        run: dotnet restore src/Readarr.sln -p:NoWarn="NU1902;NETSDK1138"
         working-directory: ${{ github.workspace }}
 
       - name: Build
